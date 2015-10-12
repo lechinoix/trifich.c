@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 char* inputPath = "./file.txt";
 char* outputPath = "./sortedFile.txt";
-char* outputFile;
+char* outputData;
 char* fileContents;
 FILE* inputFile;
+FILE* outputFile;
 int showInputFile = 0;
 int showOutputFile = 0;
 int fileOverride = 0;
@@ -41,7 +43,7 @@ int nGetArg(int argc, char *argv[])
 				else if(argv[i][1]=='o')
 				{
 					showOutputFile=1;
-				}				
+				}
 				else
 				{
 					printf("Wrong arguments ! \n");
@@ -63,24 +65,24 @@ int nGetArg(int argc, char *argv[])
 		 if(nFicExist(argv[inputFileIndex])==0)
 		 {
 			 inputPath=argv[inputFileIndex];
-			 // if((nFicExist(argv[outputFileIndex])==1))
-			 // {
-				//  outputPath = argv[outputFileIndex];
-				//  return 0;
-			 // }
-			 // else
-			 // {
-				//  if(fileOverride==0)
-				//  {
-				// 	 printf("Output file already exists override option not selected\n");
-				// 	 return 1;
-				//  }
-				//  else
-				//  {
-				// 	 outputPath = argv[outputFileIndex];
-				// 	 return 0;
-				//  }
-			 // }
+			 if((nFicExist(argv[outputFileIndex])==1))
+			 {
+				 outputPath = argv[outputFileIndex];
+				 return 0;
+			 }
+			 else
+			 {
+				 if(fileOverride==0)
+				 {
+					 printf("Output file already exists override option not selected\n");
+					 return 1;
+				 }
+				 else
+				 {
+					 outputPath = argv[outputFileIndex];
+					 return 0;
+				 }
+			 }
 		 }
 		 else
 		 {
@@ -92,22 +94,18 @@ int nGetArg(int argc, char *argv[])
 
 int nGetFic(void){
 
-	int inputFile_size = 0;
-
 	inputFile = fopen(inputPath, "rw");
-	// fseek(inputFile, 0, SEEK_END);
-	// inputFile_size = ftell(inputFile);
-	// rewind(inputFile);
-	// fileContents = malloc(inputFile_size * (sizeof(char)));
-	// fread(fileContents, sizeof(char), inputFile_size, inputFile);
-	// fclose(inputFile);
 	return(0);
 
 }
 
-int nFicExist(const char *pcNomFich)
+int nFicExist(const char *fileName)
 {
-	
+	if( access( fileName, F_OK ) == 0 ) {
+    	return 0;
+	} else {
+    	return 1;
+	}
 }
 
 int nTriFic (){
@@ -129,7 +127,14 @@ int nTriFic (){
 
 	while(fgets(strLine, sizeof(strLine), inputFile))
 	{
-		
+		if(showInputFile)
+		{
+			if(flag == 0)
+			{
+				printf("\nInput file :\n\n");
+			}
+			printf("%s", strLine);
+		}
 		currentLine = malloc(sizeof(struct Line*));
 		line_size = sizeof(strLine) + 100;
 		currentLine->text = malloc(line_size*sizeof(char));
@@ -183,29 +188,49 @@ int nTriFic (){
 	}
 
 	int inputFile_size = ftell(inputFile);
-	outputFile = malloc(inputFile_size*sizeof(char));
+	outputData = malloc(inputFile_size*sizeof(char));
 
 	currentLine = first;
-	int i = 0;
 
 	while(currentLine != NULL)
 	{
-		strcat(outputFile, currentLine->text);
+		strcat(outputData, currentLine->text);
 		previousLine = currentLine;
 		currentLine = currentLine -> nextLine;
-		i++;
 		free(previousLine->text);
 		free(previousLine);
 	}
+
+	return 0;
 
 }
 
 int main(int argc, char *argv[] ){
 
-	nGetArg(argc, argv);
+	int test = nGetArg(argc, argv);
+	if(test == 1){
+		printf("Function terminated\n");
+		return;
+	}
 	nGetFic();
 	nTriFic();
-	printf("%s", outputFile);
 	fclose(inputFile);
+
+	if(showOutputFile)
+	{
+		printf("\nOutput file :\n\n%s", outputData);
+	}
+	if(fileOverride)
+	{
+		printf("here\n");
+		outputFile = fopen(inputPath, "w");
+	}
+	else
+	{
+		printf("there\n");
+		outputFile = fopen(outputPath, "w");
+	}
+	fputs(outputData, outputFile);
+	fclose(outputFile);
 
 }
