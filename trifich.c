@@ -19,14 +19,13 @@ int nGetArg(int argc, char *argv[])
 	 //Mode Interactif
      if(argc==1)
 	 {
-		 
+		 return nGetInteractiveArgs(argc,argv);
 	 }
 	 //Mode non Interactif
 	 else
 	 {
 		 int inputFileIndex =0;
 		 int outputFileIndex =0;
-		 int flag = 0;
 		 int i;
 		 for(i=0;i<argc;i++)
 		 {
@@ -43,7 +42,7 @@ int nGetArg(int argc, char *argv[])
 				else if(argv[i][1]=='o')
 				{
 					showOutputFile=1;
-				}
+				}				
 				else
 				{
 					printf("Wrong arguments ! \n");
@@ -52,7 +51,7 @@ int nGetArg(int argc, char *argv[])
 			}				
 			else
 			{
-				if(inputFileIndex!=0)
+				if(inputFileIndex != 0)
 				{
 					outputFileIndex=i;
 				}
@@ -62,34 +61,104 @@ int nGetArg(int argc, char *argv[])
 				}				
 			}
 		 }
+		 
+		 
+		 if(inputFileIndex == 0)
+		 {
+            return nGetInteractiveArgs(argc,argv);       
+         }  
+         
+         
+         
+              
 		 if(nFicExist(argv[inputFileIndex])==0)
 		 {
 			 inputPath=argv[inputFileIndex];
-			 if((nFicExist(argv[outputFileIndex])==1))
-			 {
-				 outputPath = argv[outputFileIndex];
-				 return 0;
-			 }
-			 else
-			 {
-				 if(fileOverride==0)
-				 {
-					 printf("Output file already exists override option not selected\n");
-					 return 1;
-				 }
-				 else
-				 {
-					 outputPath = argv[outputFileIndex];
-					 return 0;
-				 }
-			 }
+			  if((nFicExist(argv[outputFileIndex])==1))
+			  {
+				  outputPath = argv[outputFileIndex];
+				  return 0;
+			  }
+			  else
+			  {
+				  if(fileOverride==0)
+				  {
+				 	 printf("Output file already exists override option not selected\n");
+				 	 return 1;
+				  }
+				  else
+				  {
+				 	 outputPath = argv[outputFileIndex];
+				 	 return 0;
+				  }
+			  }
 		 }
 		 else
 		 {
+             
 			 printf("No input File at given path\n");
 			 return 1;
 		 }
 	 }
+}
+
+int nGetInteractiveArgs(int argc, char *argv[])
+{
+    char* path ;
+    char* path2;
+    int bool = 0;
+    do {
+       path = malloc(sizeof(char)*63);
+       bool=0;
+       printf("Enter input file path : \n");
+       
+       gets(path);
+       printf("You entered %s",path);
+       if(path[0] == '\0')
+       {
+           return 1;
+       }
+       else
+       {
+           
+           if(nFicExist(path)!=0)
+           {
+               bool = 1;
+           }
+       }
+       
+   
+       } 
+   while (bool);
+   inputPath = path;
+   int bool2 = 0;
+   do {
+       path2 = malloc(sizeof(char)*63);
+       bool2 = 0;
+       printf("Enter output file path : \n");
+       gets(path2);
+       printf("You entered %s",path2);
+       if(path2[0] == '\0')
+       {
+           return 1;
+       }
+       else
+       {
+           if(nFicExist(path2)==0)
+           {
+               char answer[12] ={'\0'};
+               printf("File already exists, Override ? (y/n) \n");
+               gets(answer);
+               if(answer[0]!='y')
+               {
+                  bool2 =  1;         
+               }
+           }
+       }
+       } 
+    while (bool2);
+    outputPath = path2;
+       
 }
 
 int nGetFic(void){
@@ -152,13 +221,39 @@ int nTriFic (){
 
 			while( !end )
 			{
+
 				int i = 0;
+				int bool = 1;
 				
-				while( testedLine->text[i] == currentLine->text[i] )
+				while(bool)
 				{
-					i++;
+					bool = 0;
+					char testedChar = testedLine->text[i];			
+					char currentChar = currentLine->text[i];
+
+					if(testedChar < 97){
+						testedChar += 32;
+					}
+					if(currentChar < 97){
+						currentChar += 32;
+					}
+
+					if(testedChar==currentChar){
+						bool = 1;
+						i++;
+					}
 				}
-				if( testedLine->text[i]<currentLine->text[i] )
+
+				char testedChar = testedLine->text[i];			
+				char currentChar = currentLine->text[i];
+
+				if(testedChar < 97){
+					testedChar += 32;
+				}
+				if(currentChar < 97){
+					currentChar += 32;
+				}
+				if( testedChar < currentChar )
 				{
 					if(testedLine->nextLine == NULL)
 					{
@@ -222,15 +317,15 @@ int main(int argc, char *argv[] ){
 	}
 	if(fileOverride)
 	{
-		printf("here\n");
 		outputFile = fopen(inputPath, "w");
 	}
 	else
 	{
-		printf("there\n");
 		outputFile = fopen(outputPath, "w");
 	}
+
 	fputs(outputData, outputFile);
 	fclose(outputFile);
+	return 0;
 
 }
